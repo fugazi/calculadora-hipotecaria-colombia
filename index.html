@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calculadora de Amortización Hipotecaria</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2"></script>
+</head>
+<body>
+    <div class="container">
+        <!-- Header centrado sin selector de tema -->
+        <header class="app-header">
+            <h1>Calculadora de Amortización Hipotecaria</h1>
+        </header>
+        
+        <!-- Configuración Básica -->
+        <div class="card">
+            <div class="card__header">
+                <h2>Configuración del Préstamo</h2>
+            </div>
+            <div class="card__body">
+                <div class="loan-config-grid">
+                    <div class="form-group">
+                        <label for="currency" class="form-label">Moneda</label>
+                        <select id="currency" class="form-control">
+                            <option value="COP" selected>Peso Colombiano (COP)</option>
+                            <option value="USD">Dólar Estadounidense (USD)</option>
+                            <option value="EUR">Euro (EUR)</option>
+                            <option value="MXN">Peso Mexicano (MXN)</option>
+                            <option value="PEN">Sol Peruano (PEN)</option>
+                            <option value="ARS">Peso Argentino (ARS)</option>
+                            <option value="CLP">Peso Chileno (CLP)</option>
+                            <option value="BRL">Real Brasileño (BRL)</option>
+                            <option value="BOB">Boliviano (BOB)</option>
+                            <option value="UYU">Peso Uruguayo (UYU)</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="loanAmount" class="form-label">Monto del Préstamo</label>
+                        <input type="text" id="loanAmount" class="form-control" placeholder="200,000,000">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="interestRate" class="form-label">Tasa de Interés (%)</label>
+                        <input type="number" id="interestRate" class="form-control" step="0.01" min="0" max="100" placeholder="10.00">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="rateType" class="form-label">Tipo de Tasa</label>
+                        <select id="rateType" class="form-control">
+                            <!-- Las opciones se generan dinámicamente según el período -->
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="ratePeriod" class="form-label">Período de Tasa</label>
+                        <div class="radio-group">
+                            <label class="radio-label">
+                                <input type="radio" name="ratePeriod" value="annual" checked>
+                                Anual
+                            </label>
+                            <label class="radio-label">
+                                <input type="radio" name="ratePeriod" value="monthly">
+                                Mensual
+                            </label>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="term" class="form-label">Plazo (meses)</label>
+                        <input type="number" id="term" class="form-control" value="180" min="1">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="disbursementDate" class="form-label">Fecha de Desembolso</label>
+                        <input type="date" id="disbursementDate" class="form-control" value="2025-06-01">
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Manual de Usuario -->
+        <details class="manual-section">
+            <summary class="manual-title">Manual de Usuario</summary>
+            <div class="manual-content">
+                <h3>Instrucciones de Uso</h3>
+                
+                <h4>📋 Método de Cálculo</h4>
+                <p><strong>Esta calculadora utiliza el método francés de amortización</strong>, que es el más común en Latinoamérica. En este método:</p>
+                <ul>
+                    <li>Las cuotas son <strong>constantes</strong> (mismo valor todos los meses)</li>
+                    <li>Al inicio se pagan más <strong>intereses</strong> y menos capital</li>
+                    <li>Al final se pagan más <strong>capital</strong> y menos intereses</li>
+                    <li>El saldo disminuye gradualmente hasta llegar a cero</li>
+                </ul>
+                
+                <h4>1. Configuración Básica</h4>
+                <ul>
+                    <li><strong>Moneda:</strong> Selecciona la moneda del préstamo. Cada moneda tiene su formato específico.</li>
+                    <li><strong>Monto:</strong> Ingresa el valor del préstamo con separadores de miles automáticos.</li>
+                    <li><strong>Tasa de Interés:</strong> Ingresa el porcentaje sin símbolo %. Acepta hasta 2 decimales.</li>
+                    <li><strong>Tipo de Tasa:</strong> Efectiva está seleccionada por defecto.</li>
+                    <li><strong>Período de Tasa:</strong> Selecciona si la tasa es anual o mensual.</li>
+                    <li><strong>Plazo:</strong> Número de meses del préstamo (por defecto 180 meses = 15 años).</li>
+                    <li><strong>Fecha de Desembolso:</strong> La primera cuota se paga exactamente un mes después.</li>
+                </ul>
+
+                <h4>2. Aportes Extraordinarios</h4>
+                <ul>
+                    <li><strong>Único:</strong> Se aplica solo en el mes especificado.</li>
+                    <li><strong>Recurrente:</strong> Se aplica desde el mes inicial hasta el final del préstamo.</li>
+                    <li><strong>Estrategias:</strong>
+                        <ul>
+                            <li><em>Reducir Plazo:</em> Mantiene la cuota y reduce el tiempo de pago.</li>
+                            <li><em>Reducir Cuota:</em> Mantiene el plazo y reduce el valor de la cuota.</li>
+                        </ul>
+                    </li>
+                </ul>
+
+                <h4>3. Cambios de Tasa</h4>
+                <ul>
+                    <li>Los cambios de tasa se aplican <strong>ÚNICAMENTE</strong> como reducción de cuota.</li>
+                    <li>No afectan las estrategias de aportes previamente configuradas.</li>
+                    <li>La nueva tasa recalcula solo la cuota mensual basada en el saldo restante.</li>
+                </ul>
+
+                <h4>4. Fechas de Pago</h4>
+                <ul>
+                    <li>El primer pago es exactamente un mes después del desembolso.</li>
+                    <li>Si el desembolso es el 1 de junio, el primer pago es el 1 de julio.</li>
+                    <li>Los pagos mantienen el mismo día del mes cuando es posible.</li>
+                    <li>El formato de fecha se ajusta automáticamente según la moneda seleccionada.</li>
+                </ul>
+            </div>
+        </details>
+
+        <!-- Aportes Extraordinarios -->
+        <div class="card">
+            <div class="card__header">
+                <h2>Aportes Extraordinarios</h2>
+            </div>
+            <div class="card__body">
+                <div class="contribution-form-grid">
+                    <div class="form-group">
+                        <label for="contributionType" class="form-label">Tipo de Aporte</label>
+                        <select id="contributionType" class="form-control">
+                            <option value="single">Único</option>
+                            <option value="recurring">Recurrente</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="contributionAmount" class="form-label">Monto</label>
+                        <input type="text" id="contributionAmount" class="form-control" placeholder="0">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="contributionMonth" class="form-label">Mes de Aplicación</label>
+                        <input type="number" id="contributionMonth" class="form-control" min="1" value="1">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">Estrategia</label>
+                        <div class="radio-group">
+                            <label class="radio-label">
+                                <input type="radio" name="contributionStrategy" value="Reducir Plazo" checked>
+                                Reducir Plazo (mantener cuota)
+                            </label>
+                            <label class="radio-label">
+                                <input type="radio" name="contributionStrategy" value="Reducir Cuota">
+                                Reducir Cuota (mantener plazo)
+                            </label>
+                        </div>
+                    </div>
+                </div>
+                
+                <button type="button" id="addContribution" class="btn btn--primary">Agregar Aporte</button>
+                
+                <div id="contributionsList" class="contributions-list"></div>
+            </div>
+        </div>
+
+        <!-- Cambios de Tasa -->
+        <div class="card">
+            <div class="card__header">
+                <h2>Cambios de Tasa</h2>
+            </div>
+            <div class="card__body">
+                <div class="rate-change-form-grid">
+                    <div class="form-group">
+                        <label for="newRate" class="form-label">Nueva Tasa (%)</label>
+                        <input type="number" id="newRate" class="form-control" step="0.01" min="0" max="100" placeholder="10.00">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="rateChangeMonth" class="form-label">Mes de Aplicación</label>
+                        <input type="number" id="rateChangeMonth" class="form-control" min="1" value="1">
+                    </div>
+                </div>
+                
+                <button type="button" id="addRateChange" class="btn btn--primary">Agregar Cambio de Tasa</button>
+                
+                <div id="rateChangesList" class="rate-changes-list"></div>
+                
+                <p class="info-text">
+                    <strong>Nota:</strong> Los cambios de tasa aplican únicamente como reducción de cuota, sin afectar las estrategias de aportes configuradas.
+                </p>
+            </div>
+        </div>
+
+        <!-- Botón de Cálculo -->
+        <div class="calc-button-container">
+            <button type="button" id="calculateAmortization" class="btn btn--primary btn--lg">Calcular Amortización</button>
+        </div>
+
+        <!-- Resultados -->
+        <div id="results" class="results-section hidden">
+            <!-- Resumen -->
+            <div class="card">
+                <div class="card__header">
+                    <h2>Resumen Financiero</h2>
+                </div>
+                <div class="card__body">
+                    <div id="summaryContent" class="summary-grid"></div>
+                </div>
+            </div>
+
+            <!-- Gráfico -->
+            <div class="card">
+                <div class="card__header">
+                    <h2>Evolución del Saldo</h2>
+                </div>
+                <div class="card__body">
+                    <div class="chart-container">
+                        <canvas id="balanceChart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Nueva Gráfica de Distribución -->
+            <div class="card">
+                <div class="card__header">
+                    <h2>Distribución de Pagos</h2>
+                </div>
+                <div class="card__body">
+                    <div class="chart-container">
+                        <canvas id="distributionChart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tabla de Amortización -->
+            <div class="card">
+                <div class="card__header">
+                    <div class="flex justify-between items-center">
+                        <h2>Tabla de Amortización</h2>
+                        <button type="button" id="exportCsv" class="btn btn--secondary">Exportar CSV</button>
+                    </div>
+                </div>
+                <div class="card__body">
+                    <div class="table-container">
+                        <table id="amortizationTable" class="amortization-table">
+                            <thead>
+                                <tr>
+                                    <th>Mes</th>
+                                    <th>Fecha</th>
+                                    <th>Cuota</th>
+                                    <th>Capital</th>
+                                    <th>Interés</th>
+                                    <th>Aporte Extra</th>
+                                    <th>Saldo</th>
+                                </tr>
+                            </thead>
+                            <tbody></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
