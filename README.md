@@ -34,6 +34,11 @@ Una herramienta web sencilla para calcular cuotas hipotecarias en Colombia.
 ├── app.js              # Lógica de la aplicación
 └── README.md           # Este archivo
 ```
+## Ejecutar el servidor local
+
+```bash
+npx http-server
+```
 
 ## Contribución
 
