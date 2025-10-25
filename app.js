@@ -23,6 +23,7 @@ let distributionChartInstance = null;
 document.addEventListener('DOMContentLoaded', function() {
     initializeApp();
     setupEventListeners();
+    initializeLanguage();
 });
 
 function initializeApp() {
@@ -32,8 +33,8 @@ function initializeApp() {
     document.getElementById('term').value = 180;
     document.getElementById('interestRate').value = 10.00;
     
-    // Establecer fecha según la moneda seleccionada
-    setDateByCountry(currentCurrency);
+    // Establecer fecha actual del sistema
+    setCurrentSystemDate();
     
     // Establecer monto por defecto según los datos de prueba
     if (currentCurrency === 'COP') {
@@ -42,37 +43,33 @@ function initializeApp() {
     
     // Configurar opciones de tipo de tasa según el período seleccionado
     updateRateTypeOptions();
+    updateNewRateTypeOptions(); // Nueva función para cambios de tasa
     
     setupCurrencyFormatting();
 }
 
-function setDateByCountry(currency) {
+function setCurrentSystemDate() {
     const today = new Date();
-    const nextMonth = new Date(today.getFullYear(), today.getMonth() + 1, 1);
-    
-    // Formatear fecha según la moneda/país
-    let dateString;
-    switch (currency) {
-        case 'USD':
-            // Formato estadounidense: MM/DD/YYYY -> YYYY-MM-DD para input type="date"
-            dateString = nextMonth.toISOString().split('T')[0];
-            break;
-        case 'EUR':
-            // Formato europeo: DD/MM/YYYY -> YYYY-MM-DD para input type="date"
-            dateString = nextMonth.toISOString().split('T')[0];
-            break;
-        case 'MXN':
-            // Formato mexicano: DD/MM/YYYY -> YYYY-MM-DD para input type="date"
-            dateString = nextMonth.toISOString().split('T')[0];
-            break;
-        case 'COP':
-        default:
-            // Formato colombiano: DD/MM/YYYY -> YYYY-MM-DD para input type="date"
-            dateString = nextMonth.toISOString().split('T')[0];
-            break;
-    }
-    
+    const dateString = today.toISOString().split('T')[0];
     document.getElementById('disbursementDate').value = dateString;
+}
+
+function initializeLanguage() {
+    // Cargar idioma guardado o usar español por defecto
+    const savedLanguage = localStorage.getItem('preferred-language') || 'es';
+    document.getElementById('languageSelect').value = savedLanguage;
+    
+    // Importar el archivo de traducciones si no está cargado
+    if (typeof translations === 'undefined') {
+        const script = document.createElement('script');
+        script.src = 'translations.js';
+        script.onload = () => {
+            changeLanguage(savedLanguage);
+        };
+        document.head.appendChild(script);
+    } else {
+        changeLanguage(savedLanguage);
+    }
 }
 
 function hasBasicConfiguration() {
@@ -84,6 +81,11 @@ function hasBasicConfiguration() {
 }
 
 function setupEventListeners() {
+    // Selector de idioma
+    document.getElementById('languageSelect').addEventListener('change', function() {
+        changeLanguage(this.value);
+    });
+    
     // Cambio de moneda
     document.getElementById('currency').addEventListener('change', handleCurrencyChange);
     
@@ -104,9 +106,14 @@ function setupEventListeners() {
     document.getElementById('newRate').addEventListener('blur', validateRate);
     document.getElementById('rateChangeMonth').addEventListener('blur', validatePositiveInteger);
     
-    // Cambio de período de tasa
+    // Cambio de período de tasa principal
     document.querySelectorAll('input[name="ratePeriod"]').forEach(radio => {
         radio.addEventListener('change', updateRateTypeOptions);
+    });
+    
+    // Cambio de período de nueva tasa
+    document.querySelectorAll('input[name="newRatePeriod"]').forEach(radio => {
+        radio.addEventListener('change', updateNewRateTypeOptions);
     });
     
     // Botones de acción
@@ -126,8 +133,8 @@ function updateRateTypeOptions() {
     
     if (ratePeriod === 'annual') {
         rateTypeSelect.innerHTML = `
-            <option value="nominal-annual">Nominal</option>
-            <option value="effective-annual">Efectiva</option>
+            <option value="nominal-annual">${t('nominal') || 'Nominal'}</option>
+            <option value="effective-annual">${t('effective') || 'Efectiva'}</option>
         `;
         // Mantener selección si es compatible
         if (currentValue === 'nominal-annual' || currentValue === 'effective-annual') {
@@ -137,8 +144,8 @@ function updateRateTypeOptions() {
         }
     } else { // monthly
         rateTypeSelect.innerHTML = `
-            <option value="nominal-monthly">Nominal</option>
-            <option value="effective-monthly">Efectiva</option>
+            <option value="nominal-monthly">${t('nominal') || 'Nominal'}</option>
+            <option value="effective-monthly">${t('effective') || 'Efectiva'}</option>
         `;
         // Mantener selección si es compatible
         if (currentValue === 'nominal-monthly' || currentValue === 'effective-monthly') {
@@ -146,6 +153,49 @@ function updateRateTypeOptions() {
         } else {
             rateTypeSelect.value = 'effective-monthly'; // Default
         }
+    }
+}
+
+function updateNewRateTypeOptions() {
+    const newRatePeriod = document.querySelector('input[name="newRatePeriod"]:checked').value;
+    const newRateTypeSelect = document.getElementById('newRateType');
+    const currentValue = newRateTypeSelect.value;
+    
+    // Obtener los valores por defecto de la configuración principal
+    const mainRatePeriod = document.querySelector('input[name="ratePeriod"]:checked').value;
+    const mainRateType = document.getElementById('rateType').value;
+    
+    // Limpiar opciones actuales
+    newRateTypeSelect.innerHTML = '';
+    
+    if (newRatePeriod === 'annual') {
+        newRateTypeSelect.innerHTML = `
+            <option value="nominal-annual">${t('nominal') || 'Nominal'}</option>
+            <option value="effective-annual">${t('effective') || 'Efectiva'}</option>
+        `;
+        // Si el período principal es anual, usar el mismo tipo por defecto
+        if (mainRatePeriod === 'annual') {
+            newRateTypeSelect.value = mainRateType;
+        } else {
+            newRateTypeSelect.value = 'effective-annual'; // Default
+        }
+    } else { // monthly
+        newRateTypeSelect.innerHTML = `
+            <option value="nominal-monthly">${t('nominal') || 'Nominal'}</option>
+            <option value="effective-monthly">${t('effective') || 'Efectiva'}</option>
+        `;
+        // Si el período principal es mensual, usar el mismo tipo por defecto
+        if (mainRatePeriod === 'monthly') {
+            newRateTypeSelect.value = mainRateType;
+        } else {
+            newRateTypeSelect.value = 'effective-monthly'; // Default
+        }
+    }
+    
+    // Mantener selección si es compatible
+    if (currentValue && (currentValue.includes('annual') && newRatePeriod === 'annual' || 
+                        currentValue.includes('monthly') && newRatePeriod === 'monthly')) {
+        newRateTypeSelect.value = currentValue;
     }
 }
 
@@ -268,8 +318,8 @@ function handleCurrencyChange() {
     currentCurrency = document.getElementById('currency').value;
     setupCurrencyFormatting();
     
-    // Actualizar fecha según la nueva moneda
-    setDateByCountry(currentCurrency);
+    // Ya no necesitamos actualizar la fecha según la moneda
+    // La fecha se mantiene como la fecha actual del sistema
     
     // Reformatear campos de monto existentes
     const loanAmount = document.getElementById('loanAmount');
@@ -395,15 +445,17 @@ function addRateChange() {
     const newRate = parseFloat(rateField.value);
     const monthField = document.getElementById('rateChangeMonth');
     const month = parseInt(monthField.value);
+    const newRateType = document.getElementById('newRateType').value;
+    const newRatePeriod = document.querySelector('input[name="newRatePeriod"]:checked').value;
     
     if (isNaN(newRate) || newRate < 0) {
-        showErrorNotification('Por favor ingrese una tasa válida');
+        showErrorNotification(t('validRateRequired') || 'Por favor ingrese una tasa válida');
         rateField.classList.add('error-input');
         return;
     }
     
     if (!month || month <= 0) {
-        showErrorNotification('Por favor ingrese un mes válido');
+        showErrorNotification(t('validTermRequired') || 'Por favor ingrese un mes válido');
         monthField.classList.add('error-input');
         return;
     }
@@ -411,6 +463,8 @@ function addRateChange() {
     const rateChange = {
         id: Date.now(),
         newRate,
+        newRateType,
+        newRatePeriod,
         month,
         strategy: 'Reducir Cuota'
     };
@@ -418,7 +472,8 @@ function addRateChange() {
     rateChanges.push(rateChange);
     renderRateChanges();
     
-    showSuccessNotification(`Cambio de tasa agregado para el mes ${month}. Haz clic en "Calcular Amortización" para ver los cambios.`);
+    const successMessage = t('rateChangeAdded') || 'Cambio de tasa agregado para el mes';
+    showSuccessNotification(`${successMessage} ${month}. ${t('calculateAmortization') || 'Haz clic en "Calcular Amortización"'} para ver los cambios.`);
     
     rateField.classList.add('success-highlight');
     setTimeout(() => {
@@ -428,6 +483,9 @@ function addRateChange() {
     // Limpiar campos después de agregar
     rateField.value = '';
     monthField.value = '1';
+    // Resetear el período y tipo de nueva tasa a los valores por defecto
+    document.querySelector('input[name="newRatePeriod"][value="annual"]').checked = true;
+    updateNewRateTypeOptions();
 }
 
 function showSuccessNotification(message) {
@@ -463,7 +521,8 @@ function renderContributions() {
     container.innerHTML = '';
     
     if (contributions.length === 0) {
-        container.innerHTML = '<p class="empty-list-message">No hay aportes extraordinarios configurados</p>';
+        const emptyMessage = t('noContributions') || 'No hay aportes extraordinarios configurados';
+        container.innerHTML = `<p class="empty-list-message">${emptyMessage}</p>`;
         return;
     }
     
@@ -471,13 +530,17 @@ function renderContributions() {
         const div = document.createElement('div');
         div.className = `contribution-item ${contribution.type}`;
         
-        const typeLabel = contribution.type === 'single' ? 'Único' : 'Recurrente';
-        const strategyLabel = contribution.strategy === 'Reducir Plazo' ? 'Reducir Plazo (mantener cuota)' : 'Reducir Cuota (mantener plazo)';
+        // Usar traducciones para etiquetas
+        const typeLabel = contribution.type === 'single' ? (t('single') || 'Único') : (t('recurring') || 'Recurrente');
+        const strategyLabel = contribution.strategy === 'Reducir Plazo' ? 
+            (t('reduceTerm') || 'Reducir Plazo (mantener cuota)') : 
+            (t('reducePayment') || 'Reducir Cuota (mantener plazo)');
+        const monthLabel = t('month') || 'Mes';
         
         div.innerHTML = `
             <div class="item-content">
                 <strong>${typeLabel}</strong> - ${formatCurrency(contribution.amount)} 
-                (Mes ${contribution.month}) - ${strategyLabel}
+                (${monthLabel} ${contribution.month}) - ${strategyLabel}
             </div>
             <button class="remove-btn" data-id="${contribution.id}">×</button>
         `;
@@ -495,7 +558,8 @@ function renderRateChanges() {
     container.innerHTML = '';
     
     if (rateChanges.length === 0) {
-        container.innerHTML = '<p class="empty-list-message">No hay cambios de tasa configurados</p>';
+        const emptyMessage = t('noRateChanges') || 'No hay cambios de tasa configurados';
+        container.innerHTML = `<p class="empty-list-message">${emptyMessage}</p>`;
         return;
     }
     
@@ -503,9 +567,22 @@ function renderRateChanges() {
         const div = document.createElement('div');
         div.className = 'rate-change-item';
         
+        // Determinar etiquetas de tipo y período
+        let typeLabel = 'Efectiva';
+        let periodLabel = 'Anual';
+        
+        if (rateChange.newRateType) {
+            typeLabel = rateChange.newRateType.includes('nominal') ? (t('nominal') || 'Nominal') : (t('effective') || 'Efectiva');
+            periodLabel = rateChange.newRatePeriod === 'monthly' ? (t('monthly') || 'Mensual') : (t('annual') || 'Anual');
+        }
+        
+        const newRateLabel = t('newRate') || 'Nueva Tasa';
+        const monthLabel = t('month') || 'Mes';
+        const strategyLabel = t('reducePayment') || 'Reducir Cuota (mantener plazo)';
+        
         div.innerHTML = `
             <div class="item-content">
-                <strong>Nueva Tasa:</strong> ${rateChange.newRate}% (Mes ${rateChange.month}) - <span class="strategy-label">Reducir Cuota (mantener plazo)</span>
+                <strong>${newRateLabel}:</strong> ${rateChange.newRate}% ${typeLabel} ${periodLabel} (${monthLabel} ${rateChange.month}) - <span class="strategy-label">${strategyLabel}</span>
             </div>
             <button class="remove-btn" data-id="${rateChange.id}">×</button>
         `;
@@ -521,13 +598,17 @@ function renderRateChanges() {
 function removeContribution(id) {
     contributions = contributions.filter(c => c.id !== id);
     renderContributions();
-    showNotification('Aporte eliminado. Haz clic en "Calcular Amortización" para actualizar.', 'info-notification');
+    
+    const message = t('contributionRemoved') || 'Aporte eliminado. Haz clic en "Calcular Amortización" para actualizar.';
+    showNotification(message, 'info-notification');
 }
 
 function removeRateChange(id) {
     rateChanges = rateChanges.filter(r => r.id !== id);
     renderRateChanges();
-    showNotification('Cambio de tasa eliminado. Haz clic en "Calcular Amortización" para actualizar.', 'info-notification');
+    
+    const message = t('rateChangeRemoved') || 'Cambio de tasa eliminado. Haz clic en "Calcular Amortización" para actualizar.';
+    showNotification(message, 'info-notification');
 }
 
 function calculateAmortization() {
@@ -617,10 +698,14 @@ function generateAmortizationSchedule(principal, originalTerm, initialRate, star
     const sortedContributions = [...contributions].sort((a, b) => a.month - b.month);
     const sortedRateChanges = [...rateChanges].sort((a, b) => a.month - b.month);
     
-    // Mapeo de cambios de tasa por mes
+    // Mapeo de cambios de tasa por mes (con información completa)
     const rateChangesByMonth = {};
     sortedRateChanges.forEach(rc => {
-        rateChangesByMonth[rc.month] = rc.newRate;
+        rateChangesByMonth[rc.month] = {
+            newRate: rc.newRate,
+            newRateType: rc.newRateType || 'effective-annual', // Default si no existe
+            newRatePeriod: rc.newRatePeriod || 'annual' // Default si no existe
+        };
     });
     
     // Mapeo de aportes por mes
@@ -700,19 +785,20 @@ function generateAmortizationSchedule(principal, originalTerm, initialRate, star
         // Verificar cambios de tasa
         let rateChangedThisMonth = false;
         if (rateChangesByMonth[currentMonth]) {
-            const newRatePercent = rateChangesByMonth[currentMonth];
-            const rateType = document.getElementById('rateType').value;
-            const ratePeriod = document.querySelector('input[name="ratePeriod"]:checked').value;
+            const rateChangeData = rateChangesByMonth[currentMonth];
+            const newRatePercent = rateChangeData.newRate;
+            const newRateType = rateChangeData.newRateType;
+            const newRatePeriod = rateChangeData.newRatePeriod;
             
-            // Convertir la nueva tasa según el tipo y período seleccionados
-            if (ratePeriod === 'annual') {
-                if (rateType === 'effective-annual') {
+            // Convertir la nueva tasa según SU PROPIO tipo y período
+            if (newRatePeriod === 'annual') {
+                if (newRateType === 'effective-annual') {
                     currentRate = Math.pow(1 + newRatePercent / 100, 1/12) - 1;
                 } else { // nominal-annual
                     currentRate = newRatePercent / 12 / 100;
                 }
-            } else { // ratePeriod === 'monthly'
-                if (rateType === 'effective-monthly') {
+            } else { // newRatePeriod === 'monthly'
+                if (newRateType === 'effective-monthly') {
                     currentRate = newRatePercent / 100;
                 } else { // nominal-monthly
                     currentRate = newRatePercent / 100;
@@ -911,32 +997,32 @@ function formatDate(dateInput) {
 }
 
 function displayResults(data, originalAmount, originalTerm) {
-    // Resumen financiero
+    // Resumen financiero con traducciones
     const summaryContent = document.getElementById('summaryContent');
     summaryContent.innerHTML = `
         <div class="summary-item">
             <span class="summary-value">${formatCurrency(originalAmount)}</span>
-            <div class="summary-label">Monto Original</div>
+            <div class="summary-label">${t('originalAmount') || 'Monto Original'}</div>
         </div>
         <div class="summary-item">
             <span class="summary-value">${formatCurrency(data.totalInterest)}</span>
-            <div class="summary-label">Intereses Totales</div>
+            <div class="summary-label">${t('totalInterest') || 'Intereses Totales'}</div>
         </div>
         <div class="summary-item">
             <span class="summary-value">${formatCurrency(data.totalContributions)}</span>
-            <div class="summary-label">Aportes Extras</div>
+            <div class="summary-label">${t('extraPayments') || 'Aportes Extras'}</div>
         </div>
         <div class="summary-item">
             <span class="summary-value">${formatCurrency(data.totalPaid)}</span>
-            <div class="summary-label">Total Pagado</div>
+            <div class="summary-label">${t('totalPaid') || 'Total Pagado'}</div>
         </div>
         <div class="summary-item">
             <span class="summary-value">${data.actualTerm}</span>
-            <div class="summary-label">Meses Reales</div>
+            <div class="summary-label">${t('actualMonths') || 'Meses Reales'}</div>
         </div>
         <div class="summary-item">
             <span class="summary-value">${originalTerm - data.actualTerm}</span>
-            <div class="summary-label">Meses Ahorrados</div>
+            <div class="summary-label">${t('savedMonths') || 'Meses Ahorrados'}</div>
         </div>
     `;
     
@@ -976,11 +1062,12 @@ function displayChart(schedule) {
         chartInstance.destroy();
     }
     
-    const labels = schedule.map(row => `Mes ${row.month}`);
+    const monthLabel = t('month') || 'Mes';
+    const labels = schedule.map(row => `${monthLabel} ${row.month}`);
     const balances = schedule.map(row => row.balance);
     
     const rateChangeDataset = {
-        label: 'Cambios de Tasa',
+        label: t('rateChanges') || 'Cambios de Tasa',
         data: schedule.map(row => row.rateChange ? row.balance : null),
         borderColor: '#DB4545',
         backgroundColor: '#DB4545',
@@ -996,7 +1083,7 @@ function displayChart(schedule) {
             labels: labels,
             datasets: [
                 {
-                    label: 'Saldo Pendiente',
+                    label: t('balance') || 'Saldo Pendiente',
                     data: balances,
                     borderColor: '#1FB8CD',
                     backgroundColor: 'rgba(31, 184, 205, 0.1)',
@@ -1012,7 +1099,7 @@ function displayChart(schedule) {
             plugins: {
                 title: {
                     display: true,
-                    text: 'Evolución del Saldo del Préstamo',
+                    text: t('balanceEvolution') || 'Evolución del Saldo del Préstamo',
                     color: getComputedStyle(document.documentElement).getPropertyValue('--text-color').trim(),
                     font: {
                         size: 16,
@@ -1031,9 +1118,12 @@ function displayChart(schedule) {
                             const datasetIndex = context.datasetIndex;
                             
                             if (datasetIndex === 0) {
-                                return `Saldo: ${formatCurrency(balances[index])}`;
+                                const balanceLabel = t('balance') || 'Saldo';
+                                return `${balanceLabel}: ${formatCurrency(balances[index])}`;
                             } else if (datasetIndex === 1 && schedule[index].rateChange) {
-                                return `Cambio de Tasa en Mes ${schedule[index].month}`;
+                                const rateChangeLabel = t('rateChanges') || 'Cambio de Tasa';
+                                const monthLabel = t('month') || 'Mes';
+                                return `${rateChangeLabel} en ${monthLabel} ${schedule[index].month}`;
                             }
                         }
                     }
@@ -1120,12 +1210,17 @@ function displayDistributionChart(data, originalAmount) {
     const interestPercentage = ((totalInterest / total) * 100).toFixed(1);
     const contributionsPercentage = ((totalContributions / total) * 100).toFixed(1);
     
+    // Etiquetas con traducciones
+    const principalLabel = t('principal') || 'Capital';
+    const interestLabel = t('interest') || 'Intereses';
+    const contributionsLabel = t('extraContribution') || 'Aportes';
+    
     // Datos para la gráfica de torta
     const chartData = {
         labels: [
-            `Capital (${principalPercentage}%)`, 
-            `Intereses (${interestPercentage}%)`, 
-            `Aportes (${contributionsPercentage}%)`
+            `${principalLabel} (${principalPercentage}%)`, 
+            `${interestLabel} (${interestPercentage}%)`, 
+            `${contributionsLabel} (${contributionsPercentage}%)`
         ],
         datasets: [{
             data: [principalPaid, totalInterest, totalContributions],
@@ -1154,7 +1249,7 @@ function displayDistributionChart(data, originalAmount) {
             plugins: {
                 title: {
                     display: true,
-                    text: 'Distribución del Total de Pagos',
+                    text: t('paymentDistribution') || 'Distribución del Total de Pagos',
                     color: getComputedStyle(document.documentElement).getPropertyValue('--text-color').trim(),
                     font: {
                         size: 16,
