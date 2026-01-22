@@ -19,7 +19,7 @@ Una herramienta web sencilla para calcular cuotas hipotecarias en Colombia.
 
 ## Tecnologías Utilizadas
 
-- HTML5, CSS3, JavaScript (Vanilla))
+- HTML5, CSS3, JavaScript (Vanilla)
 - Chart.js para gráficos
 - Diseño Responsive y Tema Automático (Claro/Oscuro)
   
