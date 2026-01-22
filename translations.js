@@ -226,7 +226,7 @@ const translations = {
         contributionsDesc: "2. Extra Contributions",
         singleDesc: "Applied only in the specified month.",
         recurringDesc: "Applied from the initial month until the end of the loan.",
-        strategies: "Strategies:",
+        strategiesHeader: "Strategies:",
         reduceTermDesc: "Maintains the payment and reduces the payment time.",
         reducePaymentDesc: "Maintains the term and reduces the payment value.",
 
