@@ -9,11 +9,20 @@ Una herramienta web sencilla para calcular cuotas hipotecarias en Colombia.
 - Visualización clara del plan de pagos
 - Interfaz intuitiva y fácil de usar
 
+## 🌟 Características Principales
+
+- **Método Francés**: Cuotas constantes, cálculo preciso de intereses.
+- **Multiidioma**: Soporte para Español, Inglés, Francés, Alemán y Portugués.
+- **Multimoneda**: Compatible con las principales monedas de Latinoamérica, EEUU y Europa (COP, USD, EUR, MXN, etc.).
+- **Avanzado**: Aportes extraordinarios (únicos/recurrentes) y cambios de tasa.
+- **Visualización**: Gráficos interactivos y tabla de amortización exportable a CSV.
+
 ## Tecnologías Utilizadas
 
-- HTML5
-- CSS3
-- JavaScript (Vanilla)
+- HTML5, CSS3, JavaScript (Vanilla)
+- Chart.js para gráficos
+- Diseño Responsive y Tema Automático (Claro/Oscuro)
+  
 
 ## Cómo Usar
 
