@@ -66,7 +66,7 @@ const translations = {
         recurringDesc: "Se aplica desde el mes inicial hasta el final del préstamo.",
         strategiesHeader: "Estrategias:",
         reduceTermDesc: "Mantiene la cuota y reduce el tiempo de pago.",
-        reducePaymentDesc: "No afectan las estrategias de aportes previamente configuradas.",
+        reducePaymentDesc: "Mantiene el plazo y reduce el valor de la cuota.",
 
         // Cambios de tasa
         rateChanges: "📉 3. Cambios de Tasa",
