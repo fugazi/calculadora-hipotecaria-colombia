@@ -909,34 +909,6 @@ select.form-control {
   }
 }
 
-.manual-content-header h3 {
-  font-size: 1.2rem;
-  margin-bottom: 1rem;
-  border-bottom: 1px solid var(--border-color);
-  padding-bottom: 0.5rem;
-}
-
-.manual-content-header h4 {
-  font-size: 1rem;
-  margin-top: 1rem;
-  margin-bottom: 0.5rem;
-  color: var(--primary-color);
-}
-
-.manual-content-header p,
-.manual-content-header ul {
-  font-size: 0.9rem;
-  color: var(--text-secondary);
-}
-
-.manual-content-header ul {
-  padding-left: 1.2rem;
-}
-
-.manual-content-header li {
-  margin-bottom: 0.3rem;
-}
-
 .manual-content ul ul {
   margin-top: var(--space-8);
   margin-bottom: var(--space-8);
