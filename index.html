@@ -11,21 +11,6 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2"></script>
     <script src="translations.js"></script>
-    <script>
-        // Redirección inteligente client-side
-        document.addEventListener('DOMContentLoaded', function () {
-            if (window.location.hostname.includes('vercel.app')) {
-                var banner = document.createElement('div');
-                banner.style.cssText = 'position:fixed;top:0;left:0;right:0;background:#ff9800;color:black;text-align:center;padding:15px;z-index:9999;font-weight:bold;box-shadow:0 2px 5px rgba(0,0,0,0.2);';
-                banner.innerHTML = '⚠️ Sitio actualizado. Nos hemos mudado a <a href="https://calcredito.minube.dev" style="color:black;text-decoration:underline;">calcredito.minube.dev</a>. Redirigiendo en 5 segundos...';
-                document.body.style.marginTop = '50px';
-                document.body.insertBefore(banner, document.body.firstChild);
-                setTimeout(function () {
-                    window.location.href = 'https://calcredito.minube.dev';
-                }, 5000);
-            }
-        });
-    </script>
 </head>
 
 <body>
@@ -374,8 +359,8 @@
     <!-- Pie de página Simplificado -->
     <footer class="app-footer-simple">
         <p>
-            v1.1.2 - <a href="https://github.com/jorgelopez21/labs" target="_blank" rel="noopener noreferrer">GitHub</a>
-            | <a href="mailto:contacto@minube.dev">contacto@minube.dev</a>
+            v1.1.2 - <a href="https://github.com/fugazi" target="_blank" rel="noopener noreferrer">GitHub</a>
+            | <a href="mailto:douglas@douglasfugazi.co">douglas@douglasfugazi.co</a>
         </p>
     </footer>
 
